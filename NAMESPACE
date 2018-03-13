@@ -1,0 +1,8 @@
+export(spop)
+exportClasses(spop)
+exportMethods("add<-")
+exportMethods("iterate<-")
+exportMethods(developed)
+exportMethods(size)
+exportMethods(dead)
+importFrom("stats", "pgamma", "rbinom")
