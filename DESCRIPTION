@@ -3,9 +3,11 @@ Type: Package
 Title: Age-Structured Population Dynamics Model
 Version: 0.1
 Date: 2018-04-13
-Author: Kamil Erguler
+Author: Kamil Erguler [aut, cre]
 Maintainer: Kamil Erguler <k.erguler@cyi.ac.cy>
-Description: Implements the deterministic and stochastic age-structured population dynamics models described previously in Erguler et al. 2016 and 2017. The complete vector and disease dynamics models are implemented elsewhere.
-License: GPL-2
+Description: Implements discrete time deterministic and stochastic age-structured population dynamics models.
+License: GPL (>= 2)
 URL: https://github.com/kerguler/albopictusR
 LazyLoad: yes
+Imports: methods
+RoxygenNote: 6.0.1
