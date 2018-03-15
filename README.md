@@ -43,4 +43,4 @@ Generate a deterministic population and observe the difference
     iterate(s) <- data.frame(death_mean=20,death_sd=5,dev=0)
     print(dead(s))
 
-For more information, please contact me at [k.erguler@cyi.ac.cy](mailto:k.erguler@cyi.ac.cy).
+
