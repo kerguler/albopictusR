@@ -1,5 +1,5 @@
 # albopictus
-Age-structured population dynamics model
+Age-Structured Population Dynamics Model
 
 ## Installation
 The R package can be installed from the command line,

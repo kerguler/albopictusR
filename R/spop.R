@@ -18,7 +18,7 @@ setMethod("initialize",
               return(.Object)
           })
 setGeneric(name="add<-",
-           def=function(object,value,...) standardGeneric("add<-"))
+           def=function(object,value) standardGeneric("add<-"))
 setMethod("add<-",
           c("spop","data.frame"),
           function(object, value) {
@@ -34,7 +34,7 @@ setMethod("add<-",
               return(object)
           })
 setGeneric(name="iterate<-",
-           def=function(object,value,...) standardGeneric("iterate<-"))
+           def=function(object,value) standardGeneric("iterate<-"))
 setMethod("iterate<-",
           c("spop","data.frame"),
           function(object, value) {
@@ -45,7 +45,10 @@ setMethod("iterate<-",
               }
               if (!("dev" %in% colnames(value))) {
                   if (("dev_mean" %in% colnames(value)) && ("dev_sd" %in% colnames(value)))
-                      dev <- gamma_dist_prob(object@pop$age,value$dev_mean,value$dev_sd)
+                      if (value$dev_sd == 0)
+                          dev <- as.numeric(object@pop$age >= value$dev_mean - 1.0)
+                      else
+                          dev <- gamma_dist_prob(object@pop$age,value$dev_mean,value$dev_sd)
                   else {
                       warning(sprintf("Error in development probability"))
                       return(object)
@@ -54,7 +57,10 @@ setMethod("iterate<-",
                   dev <- value$dev
               if (!("death" %in% colnames(value))) {
                   if (("death_mean" %in% colnames(value)) && ("death_sd" %in% colnames(value)))
-                      death <- gamma_dist_prob(object@pop$age,value$death_mean,value$death_sd)
+                      if (value$death_sd == 0)
+                          death <- as.numeric(object@pop$age >= value$death_mean - 1.0)
+                      else
+                          death <- gamma_dist_prob(object@pop$age,value$death_mean,value$death_sd)
                   else {
                       warning(sprintf("Error in probability of death"))
                       return(object)
@@ -79,21 +85,21 @@ setMethod("iterate<-",
               return(object)
           })
 setGeneric(name="developed",
-           def=function(object,...) standardGeneric("developed"))
+           def=function(object) standardGeneric("developed"))
 setMethod("developed",
           "spop",
           function(object) {
               return(object@developed)
           })
 setGeneric(name="size",
-           def=function(object,...) standardGeneric("size"))
+           def=function(object) standardGeneric("size"))
 setMethod("size",
           "spop",
           function(object) {
               return(sum(object@pop$number))
           })
 setGeneric(name="dead",
-           def=function(object,...) standardGeneric("dead"))
+           def=function(object) standardGeneric("dead"))
 setMethod("dead",
           "spop",
           function(object) {

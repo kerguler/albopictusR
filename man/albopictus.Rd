@@ -1,8 +1,8 @@
 \name{albopictus}
 \alias{albopictus}
-\title{ Age-structured population dynamics model }
+\title{ Age-Structured Population Dynamics Model }
 \description{
-This package implements the "spop" class for age-structured population dynamics modelling. For more information, see the class description.
+Implements the "spop" class for age-structured population dynamics modelling. For more information, see class description.
 }
 \author{
 \itemize{
