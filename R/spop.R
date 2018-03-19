@@ -4,7 +4,11 @@ gamma_dist_prob <- function(array,mean,sd) {
     return(1.0 - (1.0-pgamma(array+1,k,scale=theta))/(1.0-pgamma(array,k,scale=theta)))
 }
 
-#' An S4 class to represent an age-structured population
+#' @name spop
+#' @export spop
+#' @importFrom methods new
+#' @importFrom stats pgamma rbinom
+#' @title An S4 class to represent an age-structured population
 #'
 #' @description
 #' \itemize{
@@ -26,7 +30,6 @@ gamma_dist_prob <- function(array,mean,sd) {
 #' }
 #' 
 #' @examples
-#' \dontrun{
 #' # Generate a population with stochastic dynamics
 #' s <- spop(stochastic=TRUE)
 #' # Add 1000 20-day-old individuals
@@ -52,7 +55,6 @@ gamma_dist_prob <- function(array,mean,sd) {
 #' iterate(s) <- data.frame(death_mean=20,death_sd=5,dev=0)
 #' print(dead(s))
 #'
-#' }
 spop <- setClass("spop", slots=list(stochastic="logical",
                                     pop="data.frame",
                                     developed="numeric",
@@ -67,91 +69,148 @@ setMethod("initialize",
               return(.Object)
           })
 
+#' @name add<-
+#' @rdname add-spop
+#' @exportMethod add<-
+#' @title Add batch
+#' @description
+#' Introduce a batch of individuals with a given age
+#' @param x spop class instant
+#' @param value \code{data.frame} with \code{name} and \code{age} fields
 setGeneric(name="add<-",
-           def=function(object,value) standardGeneric("add<-"))
+           def=function(x,value) standardGeneric("add<-"))
+#' @rdname add-spop
+#' @aliases add<-,spop-method
 setMethod("add<-",
           c("spop","data.frame"),
-          function(object, value) {
+          function(x, value) {
               if (!("age" %in% colnames(value))) value$age <- 0
               if (!("number" %in% colnames(value))) {
-                  return(object)
+                  return(x)
               }
-              i <- object@pop$age == value$age
+              i <- x@pop$age == value$age
               if (any(i))
-                  object@pop$number[i] <- object@pop$number[i] + value$number
+                  x@pop$number[i] <- x@pop$number[i] + value$number
               else
-                  object@pop[nrow(object@pop)+1,] <- list(value$age,value$number)
-              return(object)
+                  x@pop[nrow(x@pop)+1,] <- list(value$age,value$number)
+              return(x)
           })
+
+#' @name iterate<-
+#' @rdname iterate-spop
+#' @exportMethod iterate<-
+#' @title Iterate population
+#' @description
+#' Iterate the population for one day
+#' @param x spop class instant
+#' @param value \code{data.frame} with the following fields
+#' \itemize{
+#' \item \code{dev}
+#' \item \code{dev_mean}, \code{dev_sd}
+#' \item \code{death}
+#' \item \code{death_mean}, \code{death_sd}
+#' }
 setGeneric(name="iterate<-",
-           def=function(object,value) standardGeneric("iterate<-"))
+           def=function(x,value) standardGeneric("iterate<-"))
+#' @rdname iterate-spop
+#' @aliases iterate<-,spop-method
 setMethod("iterate<-",
           c("spop","data.frame"),
-          function(object, value) {
-              if (nrow(object@pop)==0) {
-                  object@developed <- 0
-                  object@dead <- 0
-                  return(object)
+          function(x, value) {
+              if (nrow(x@pop)==0) {
+                  x@developed <- 0
+                  x@dead <- 0
+                  return(x)
               }
               if (!("dev" %in% colnames(value))) {
                   if (("dev_mean" %in% colnames(value)) && ("dev_sd" %in% colnames(value)))
                       if (value$dev_sd == 0)
-                          dev <- as.numeric(object@pop$age >= value$dev_mean - 1.0)
+                          dev <- as.numeric(x@pop$age >= value$dev_mean - 1.0)
                       else
-                          dev <- gamma_dist_prob(object@pop$age,value$dev_mean,value$dev_sd)
+                          dev <- gamma_dist_prob(x@pop$age,value$dev_mean,value$dev_sd)
                   else {
                       warning(sprintf("Error in development probability"))
-                      return(object)
+                      return(x)
                   }
               } else
                   dev <- value$dev
               if (!("death" %in% colnames(value))) {
                   if (("death_mean" %in% colnames(value)) && ("death_sd" %in% colnames(value)))
                       if (value$death_sd == 0)
-                          death <- as.numeric(object@pop$age >= value$death_mean - 1.0)
+                          death <- as.numeric(x@pop$age >= value$death_mean - 1.0)
                       else
-                          death <- gamma_dist_prob(object@pop$age,value$death_mean,value$death_sd)
+                          death <- gamma_dist_prob(x@pop$age,value$death_mean,value$death_sd)
                   else {
                       warning(sprintf("Error in probability of death"))
-                      return(object)
+                      return(x)
                   }
               } else
                   death <- value$death
-              if (object@stochastic) {
-                  k <- rbinom(length(object@pop$number),object@pop$number,death)
-                  object@pop$number <- object@pop$number - k
-                  d <- rbinom(length(object@pop$number),object@pop$number,dev)
-                  object@pop$number <- object@pop$number - d
+              if (x@stochastic) {
+                  k <- rbinom(length(x@pop$number),x@pop$number,death)
+                  x@pop$number <- x@pop$number - k
+                  d <- rbinom(length(x@pop$number),x@pop$number,dev)
+                  x@pop$number <- x@pop$number - d
               } else {
-                  k <- object@pop$number * death
-                  object@pop$number <- object@pop$number * (1.0 - death)
-                  d <- object@pop$number * dev
-                  object@pop$number <- object@pop$number * (1.0 - dev)
+                  k <- x@pop$number * death
+                  x@pop$number <- x@pop$number * (1.0 - death)
+                  d <- x@pop$number * dev
+                  x@pop$number <- x@pop$number * (1.0 - dev)
               }
-              object@pop$age <- object@pop$age + 1
-              object@pop <- object@pop[object@pop$number>0,]
-              object@developed <- sum(d)
-              object@dead <- sum(k)
-              return(object)
+              x@pop$age <- x@pop$age + 1
+              x@pop <- x@pop[x@pop$number>0,]
+              x@developed <- sum(d)
+              x@dead <- sum(k)
+              return(x)
           })
+
+#' @name developed
+#' @rdname developed-spop
+#' @exportMethod developed
+#' @title Read developed
+#' @description
+#' Read the number of individuals designated to complete their development
+#' @param x spop class instant
 setGeneric(name="developed",
-           def=function(object) standardGeneric("developed"))
+           def=function(x) standardGeneric("developed"))
+#' @rdname developed-spop
+#' @aliases developed,spop-method
 setMethod("developed",
           "spop",
-          function(object) {
-              return(object@developed)
+          function(x) {
+              return(x@developed)
           })
+
+#' @name dead
+#' @rdname dead-spop
+#' @exportMethod dead
+#' @title Read dead
+#' @description
+#' Read the number of dead individuals after each iteration
+#' @param x spop class instant
 setGeneric(name="dead",
-           def=function(object) standardGeneric("dead"))
+           def=function(x) standardGeneric("dead"))
+#' @rdname dead-spop
+#' @aliases dead,spop-method
 setMethod("dead",
           "spop",
-          function(object) {
-              return(object@dead)
+          function(x) {
+              return(x@dead)
           })
+
+#' @name size
+#' @rdname size-spop
+#' @exportMethod size
+#' @title Read size
+#' @description
+#' Read the total number of individuals
+#' @param x spop class instant
 setGeneric(name="size",
-           def=function(object) standardGeneric("size"))
+           def=function(x) standardGeneric("size"))
+#' @rdname size-spop
+#' @aliases size,spop-method
 setMethod("size",
           "spop",
-          function(object) {
-              return(sum(object@pop$number))
+          function(x) {
+              return(sum(x@pop$number))
           })
