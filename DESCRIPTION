@@ -1,8 +1,8 @@
 Package: albopictus
 Type: Package
 Title: Age-Structured Population Dynamics Model
-Version: 0.1
-Date: 2018-04-13
+Version: 0.2
+Date: 2018-04-30
 Author: Kamil Erguler [aut, cre]
 Maintainer: Kamil Erguler <k.erguler@cyi.ac.cy>
 Description: Implements discrete time deterministic and stochastic age-structured population dynamics models described in Erguler and others (2016) <doi:10.1371/journal.pone.0149282> and Erguler and others (2017) <doi:10.1371/journal.pone.0174293>.

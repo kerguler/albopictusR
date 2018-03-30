@@ -85,7 +85,7 @@ setMethod("add<-",
           c("spop","data.frame"),
           function(x, value) {
               if (!("age" %in% colnames(value))) value$age <- 0
-              if (!("number" %in% colnames(value))) {
+              if (!("number" %in% colnames(value)) || value$number <= 0) {
                   return(x)
               }
               i <- x@pop$age == value$age
