@@ -15,6 +15,7 @@ gamma_dist_prob <- function(array,mean,sd) {
 #' \item \code{spop} implements the deterministic and stochastic age-structured population dynamics models described in Erguler et al. 2016 and 2017
 #' \item \code{add} introduces a batch of individuals with a given age (default: 0)
 #' \item \code{iterate} iterates the population for one day and calculates (overwrites) the number of dead individuals and the number of individuals designated to complete their development
+#' \item \code{devtable} reads the number, age, and development cycle of individuals designated to complete their development
 #' \item \code{developed} reads the number of individuals designated to complete their development
 #' \item \code{dead} reads the number of dead individuals after each iteration
 #' \item \code{size} reads the total number of individuals
@@ -58,14 +59,16 @@ gamma_dist_prob <- function(array,mean,sd) {
 spop <- setClass("spop", slots=list(stochastic="logical",
                                     pop="data.frame",
                                     developed="numeric",
-                                    dead="numeric"))
+                                    dead="numeric",
+                                    devtable="data.frame"))
 setMethod("initialize",
           "spop",
           function(.Object, stochastic=TRUE) {
               .Object@stochastic <- stochastic
-              .Object@pop <- data.frame(age=numeric(),number=numeric())
+              .Object@pop <- data.frame(age=numeric(),devcycle=numeric(),development=numeric(),number=numeric())
               .Object@developed <- 0
               .Object@dead <- 0
+              .Object@devtable <- data.frame()
               return(.Object)
           })
 
@@ -76,7 +79,7 @@ setMethod("initialize",
 #' @description
 #' Introduce a batch of individuals with a given age
 #' @param x spop class instant
-#' @param value \code{data.frame} with \code{name} and \code{age} fields
+#' @param value \code{data.frame} with \code{age}, \code{devcycle}, \code{development}, and \code{number} fields
 setGeneric(name="add<-",
            def=function(x,value) standardGeneric("add<-"))
 #' @rdname add-spop
@@ -84,15 +87,23 @@ setGeneric(name="add<-",
 setMethod("add<-",
           c("spop","data.frame"),
           function(x, value) {
+              if (nrow(value)==0) return(x);
               if (!("age" %in% colnames(value))) value$age <- 0
+              if (!("devcycle" %in% colnames(value))) value$devcycle <- 0
+              if (!("development" %in% colnames(value))) value$development <- value$age
               if (!("number" %in% colnames(value)) || value$number <= 0) {
                   return(x)
               }
-              i <- x@pop$age == value$age
-              if (any(i))
-                  x@pop$number[i] <- x@pop$number[i] + value$number
-              else
-                  x@pop[nrow(x@pop)+1,] <- list(value$age,value$number)
+              for (val in 1:nrow(value)) {
+                  i <- (x@pop$age == value[val,]$age) & (x@pop$devcycle == value[val,]$devcycle) & (x@pop$development == value[val,]$development)
+                  if (any(i))
+                      x@pop$number[i] <- x@pop$number[i] + value[val,]$number
+                  else
+                      x@pop[nrow(x@pop)+1,] <- list(value[val,]$age,
+                                                    value[val,]$devcycle,
+                                                    value[val,]$development,
+                                                    value[val,]$number)
+              }
               return(x)
           })
 
@@ -120,14 +131,15 @@ setMethod("iterate<-",
               if (nrow(x@pop)==0) {
                   x@developed <- 0
                   x@dead <- 0
+                  x@devtable <- data.frame()
                   return(x)
               }
               if (!("dev" %in% colnames(value))) {
                   if (("dev_mean" %in% colnames(value)) && ("dev_sd" %in% colnames(value)))
                       if (value$dev_sd == 0)
-                          dev <- as.numeric(x@pop$age >= value$dev_mean - 1.0)
+                          dev <- as.numeric(x@pop$development >= value$dev_mean - 1.0)
                       else
-                          dev <- gamma_dist_prob(x@pop$age,value$dev_mean,value$dev_sd)
+                          dev <- gamma_dist_prob(x@pop$development,value$dev_mean,value$dev_sd)
                   else {
                       warning(sprintf("Error in development probability"))
                       return(x)
@@ -153,12 +165,22 @@ setMethod("iterate<-",
                   x@pop$number <- x@pop$number - d
               } else {
                   k <- x@pop$number * death
-                  x@pop$number <- x@pop$number * (1.0 - death)
+                  x@pop$number <- x@pop$number - k
                   d <- x@pop$number * dev
-                  x@pop$number <- x@pop$number * (1.0 - dev)
+                  x@pop$number <- x@pop$number - d
               }
               x@pop$age <- x@pop$age + 1
+
+              x@devtable <- x@pop
+              x@devtable$number <- d 
+              x@devtable$development <- 0
+              x@devtable$devcycle <- x@devtable$devcycle + 1
+              x@devtable <- x@devtable[x@devtable$number>0,]
+
+              x@pop$development <- x@pop$development + 1
+
               x@pop <- x@pop[x@pop$number>0,]
+
               x@developed <- sum(d)
               x@dead <- sum(k)
               return(x)
@@ -196,6 +218,23 @@ setMethod("dead",
           "spop",
           function(x) {
               return(x@dead)
+          })
+
+#' @name devtable
+#' @rdname devtable-spop
+#' @exportMethod devtable
+#' @title Read devtable
+#' @description
+#' Read the number, age, and development cycles of individuals completing their development after each iteration
+#' @param x spop class instant
+setGeneric(name="devtable",
+           def=function(x) standardGeneric("devtable"))
+#' @rdname devtable-spop
+#' @aliases devtable,spop-method
+setMethod("devtable",
+          "spop",
+          function(x) {
+              return(x@devtable)
           })
 
 #' @name size
