@@ -170,14 +170,13 @@ setMethod("iterate<-",
                   x@pop$number <- x@pop$number - d
               }
               x@pop$age <- x@pop$age + 1
+              x@pop$development <- x@pop$development + 1
 
               x@devtable <- x@pop
               x@devtable$number <- d 
-              x@devtable$development <- 0
               x@devtable$devcycle <- x@devtable$devcycle + 1
+              x@devtable$development <- 0
               x@devtable <- x@devtable[x@devtable$number>0,]
-
-              x@pop$development <- x@pop$development + 1
 
               x@pop <- x@pop[x@pop$number>0,]
 
