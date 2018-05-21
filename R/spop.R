@@ -135,11 +135,10 @@ setMethod("iterate<-",
                   return(x)
               }
               if (!("dev" %in% colnames(value))) {
-                  if (("dev_mean" %in% colnames(value)) && ("dev_sd" %in% colnames(value)))
-                      if (value$dev_sd == 0)
-                          dev <- as.numeric(x@pop$development >= value$dev_mean - 1.0)
-                      else
-                          dev <- gamma_dist_prob(x@pop$development,value$dev_mean,value$dev_sd)
+                  if (("dev_mean" %in% colnames(value)) && (!("dev_sd" %in% colnames(value))))
+                      dev <- as.numeric(x@pop$development >= value$dev_mean - 1.0)
+                  else if (("dev_mean" %in% colnames(value)) && ("dev_sd" %in% colnames(value)))
+                      dev <- gamma_dist_prob(x@pop$development,value$dev_mean,value$dev_sd)
                   else {
                       warning(sprintf("Error in development probability"))
                       return(x)
@@ -147,11 +146,10 @@ setMethod("iterate<-",
               } else
                   dev <- value$dev
               if (!("death" %in% colnames(value))) {
-                  if (("death_mean" %in% colnames(value)) && ("death_sd" %in% colnames(value)))
-                      if (value$death_sd == 0)
-                          death <- as.numeric(x@pop$age >= value$death_mean - 1.0)
-                      else
-                          death <- gamma_dist_prob(x@pop$age,value$death_mean,value$death_sd)
+                  if (("death_mean" %in% colnames(value)) && (!("death_sd" %in% colnames(value))))
+                      death <- as.numeric(x@pop$age >= value$death_mean - 1.0)
+                  else if (("death_mean" %in% colnames(value)) && ("death_sd" %in% colnames(value)))
+                      death <- gamma_dist_prob(x@pop$age,value$death_mean,value$death_sd)
                   else {
                       warning(sprintf("Error in probability of death"))
                       return(x)
