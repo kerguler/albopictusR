@@ -2,7 +2,7 @@
 % Please edit documentation in R/spop.R
 \name{gamma_dist_prob}
 \alias{gamma_dist_prob}
-\title{Gamma-distributed probability of death or development happening in the next iteration}
+\title{Gamma probability of death or development}
 \usage{
 gamma_dist_prob(xr, mn, std)
 }
@@ -12,4 +12,7 @@ gamma_dist_prob(xr, mn, std)
 \item{mn}{mean age of death or development}
 
 \item{std}{standard deviation of the age of death or development}
+}
+\description{
+Gamma-distributed probability of death or development happening in the next iteration
 }

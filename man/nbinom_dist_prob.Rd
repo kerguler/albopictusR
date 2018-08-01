@@ -2,7 +2,7 @@
 % Please edit documentation in R/spop.R
 \name{nbinom_dist_prob}
 \alias{nbinom_dist_prob}
-\title{Negative binomial-distributed probability of death or development happening in the next iteration}
+\title{Negative binomial probability of death or development}
 \usage{
 nbinom_dist_prob(xr, mn, std)
 }
@@ -12,4 +12,7 @@ nbinom_dist_prob(xr, mn, std)
 \item{mn}{mean age of death or development}
 
 \item{std}{standard deviation of the age of death or development}
+}
+\description{
+Negative binomial-distributed probability of death or development happening in the next iteration
 }
