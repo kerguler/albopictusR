@@ -226,9 +226,9 @@ setMethod("iterate<-",
               return(iterfun(x,value,FALSE))
           })
 
-#' @name perturbate<-
-#' @rdname perturbate-spop
-#' @exportMethod perturbate<-
+#' @name perturb<-
+#' @rdname perturb-spop
+#' @exportMethod perturb<-
 #' @title Iterate population without incrementing age or development
 #' @description
 #' Iterate the population for one day keeping age and development fixed
@@ -240,11 +240,11 @@ setMethod("iterate<-",
 #' \item \code{dev}: age-independent daily probability of development
 #' \item \code{dev_mean} and \code{dev_sd}: age-dependent daily probability of development (\code{dev_sd=0} indicates fixed development time (defined by \code{dev_mean}))
 #' }
-setGeneric(name="perturbate<-",
-           def=function(x,value) standardGeneric("perturbate<-"))
-#' @rdname perturbate-spop
-#' @aliases perturbate<-,spop-method
-setMethod("perturbate<-",
+setGeneric(name="perturb<-",
+           def=function(x,value) standardGeneric("perturb<-"))
+#' @rdname perturb-spop
+#' @aliases perturb<-,spop-method
+setMethod("perturb<-",
           c("spop","data.frame"),
           function(x, value) {
               return(iterfun(x,value,TRUE))
