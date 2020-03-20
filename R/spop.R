@@ -192,7 +192,7 @@ iterfun <- function(x, value, pause) {
     x@devtable <- x@pop
     x@devtable$number <- d 
     x@devtable$devcycle <- if (pause) {x@devtable$devcycle} else {x@devtable$devcycle + 1}
-    x@devtable$development <- 0
+    x@devtable$development <- if (pause) {x@devtable$development} else {0}
     x@devtable <- x@devtable[x@devtable$number>0,]
     
     x@pop <- x@pop[x@pop$number>0,]
